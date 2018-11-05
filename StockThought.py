@@ -19,7 +19,7 @@ def main():
     while True:
         top_comment = getTopComment()
         makeTweet(top_comment)
-        time.sleep(1800)      ##run hourly
+        time.sleep(1800)      ##run every 30 minutes
 
 def getTopComment():
     ##connect to subreddit

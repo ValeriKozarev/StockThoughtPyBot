@@ -1,34 +1,63 @@
 ## @author Valeri Kozarev
 import sys
+import time
+import praw
 import tweepy
-import Tkinter
 
-##keys
-consumer_key = 'consumer key'
-consumer_secret = 'consumer secrets'
-access_token = 'access token'
-access_token_secret = 'access token secret'
+##twitter keys
+twitter_consumer_key = ''
+twitter_consumer_secret = ''
+twitter_access_token = ''
+twitter_access_token_secret = ''
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth)
-
-TwitterURL = ""
-RedditURl = ""
+##reddit keys
+reddit_client_id = ''
+reddit_client_id_secret = ''
+user_agent = ''
 
 def main():
-    """Main entry point for the script."""
-    pass
+    while True:
+        top_comment = getTopComment()
+        makeTweet(top_comment)
+        time.sleep(1800)      ##run hourly
 
-def getTopPost(url):
-    "Return a link to the top post of reddit at the current hour"
+def getTopComment():
+    ##connect to subreddit
+    reddit = praw.Reddit(client_id='',
+                         client_secret='',
+                         user_agent='')
 
-def getTopComment(url):
-    "Return a string representing the top comment from the top post"
-    pass
+    ##want to include r/options, r/wallstreetbets
+    subreddit = reddit.subreddit("investing")
 
-def makeTweet(url):
-    "post that top comment to the twitter account"
+    ##get the top post
+    for submission in subreddit.hot(limit=5):
+        if submission.locked or submission.stickied:
+            continue
+        for comment in submission.comments:
+            if hasattr(comment, "body") and comment.distinguished==None:
+                top_comment = comment.body
+                ##store top comment that matches all our criteria
+                if (len(top_comment) <= 280 and top_comment != "[removed]"):
+                    return top_comment
+        
+        return None
+
+
+def makeTweet(comment):
+    ##authorization for Twitter
+    twitter_auth = tweepy.OAuthHandler(twitter_consumer_key, twitter_consumer_secret)
+    twitter_auth.set_access_token(twitter_access_token, twitter_access_token_secret)
+    twitter_api = tweepy.API(twitter_auth)
+
+    ##make tweet
+    try:
+        twitter_api.update_status(comment)
+        print("new tweet")
+    except tweepy.error.TweepError as e:
+        print("Caught an error, message below:")
+        print(e.reason)
+    return
     
 if __name__ == '__main__':
     sys.exit(main())

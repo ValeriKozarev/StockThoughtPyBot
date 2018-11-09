@@ -3,6 +3,7 @@ import sys
 import time
 import praw
 import tweepy
+import random
 
 ##twitter keys
 twitter_consumer_key = ''
@@ -10,16 +11,11 @@ twitter_consumer_secret = ''
 twitter_access_token = ''
 twitter_access_token_secret = ''
 
-##reddit keys
-reddit_client_id = ''
-reddit_client_id_secret = ''
-user_agent = ''
-
 def main():
     while True:
         top_comment = getTopComment()
         makeTweet(top_comment)
-        time.sleep(1800)      ##run every 30 minutes
+        time.sleep(60)      ##run every 30 minutes
 
 def getTopComment():
     ##connect to subreddit
@@ -27,8 +23,10 @@ def getTopComment():
                          client_secret='',
                          user_agent='')
 
-    ##want to include r/options, r/wallstreetbets
-    subreddit = reddit.subreddit("investing")
+    ##choose one of our subreddits at random
+    subreddit_list = ["stocks", "options", "wallstreetbets", "stockmarket", "robinhood", "investing"]
+    subreddit_title = random.choice(subreddit_list)
+    subreddit = reddit.subreddit(subreddit_title)
 
     ##get the top post
     for submission in subreddit.hot(limit=5):
